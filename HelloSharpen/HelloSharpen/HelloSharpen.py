@@ -8,6 +8,7 @@ from array import array
 
 #
 # HelloSharpen
+# Note that the name is misleading. I just used it because it was part of the template I was working on. 
 #
 
 class HelloSharpen(ScriptedLoadableModule):
@@ -15,6 +16,7 @@ class HelloSharpen(ScriptedLoadableModule):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
+# This part is just setting up the information part of the module. 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "Simple Module Operations" # TODO make this more human readable by adding spaces
@@ -22,7 +24,10 @@ class HelloSharpen(ScriptedLoadableModule):
     self.parent.dependencies = []
     self.parent.contributors = ["Claudia, Geoff"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
-Woot 
+Select two volumes if the operation calls for two volumes. If not, just select one, but make sure you select Volume
+1 for the volume you want to perform operations on. The console may ask you for inputs (scalars, etc.). Then select
+the output Volume as the volume you want displayed on the right. Make sure that you have selected that Volume in the
+Display so that changes are showing up correctly. 
 """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
@@ -32,6 +37,8 @@ No grant, knowledge is priceless
 #
 # HelloSharpenWidget
 #
+
+# This is the class for the Widget. Defines the Widget
 
 class HelloSharpenWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
@@ -56,8 +63,9 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     #
-    # input volume selector
+    # VOLUME SELECTION 
     #
+    # input volume 1
     self.inputSelector = slicer.qMRMLNodeComboBox()
     self.inputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.inputSelector.selectNodeUponCreation = True
@@ -69,7 +77,7 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     self.inputSelector.setMRMLScene( slicer.mrmlScene )
     self.inputSelector.setToolTip( "Pick the input to the algorithm." )
     parametersFormLayout.addRow("Input Volume1: ", self.inputSelector)
-
+    # input volume 2
     self.inputSelector2 = slicer.qMRMLNodeComboBox()
     self.inputSelector2.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.inputSelector2.selectNodeUponCreation = True
@@ -81,7 +89,6 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     self.inputSelector2.setMRMLScene( slicer.mrmlScene )
     self.inputSelector2.setToolTip( "Pick the input to the algorithm." )
     parametersFormLayout.addRow("Input Volume2: ", self.inputSelector2)
-
     #
     # output volume selector
     #
@@ -96,7 +103,6 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     self.outputSelector.setMRMLScene( slicer.mrmlScene )
     self.outputSelector.setToolTip( "Pick the output to the algorithm." )
     parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
     #
     # threshold value
     #
@@ -107,7 +113,6 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     self.imageThresholdSliderWidget.value = 0.5
     self.imageThresholdSliderWidget.setToolTip("Set threshold value for computing the output image. Voxels that have intensities lower than this value will set to zero.")
     parametersFormLayout.addRow("Image threshold", self.imageThresholdSliderWidget)
-
     #
     # check box to trigger taking screen shots for later use in tutorials
     #
@@ -117,8 +122,10 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
 
     #
-    # Apply Button
+    # DIFFERENT OPERATIONS
     #
+
+    # multiplication
     self.applyButton = qt.QPushButton("Multiply")
     self.applyButton.toolTip = "Run the operator."
     self.applyButton.enabled = False
@@ -129,30 +136,79 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
     self.inputSelector2.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
-    self.exp = qt.QPushButton("Add")
-    self.exp.toolTip = "Run the operator."
-    self.exp.enabled = True
-    parametersFormLayout.addRow(self.exp)
+    # division
+    self.div = qt.QPushButton("Divide")
+    self.div.toolTip = "Run the operator."
+    self.div.enabled = False
+    parametersFormLayout.addRow(self.div)
     # connections
-    self.exp.connect('clicked(bool)', self.onExp)
+    self.div.connect('clicked(bool)', self.onDiv)
     self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.inputSelector2.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
+    # addition
+    self.add = qt.QPushButton("Add")
+    self.add.toolTip = "Run the operator."
+    self.add.enabled = False
+    parametersFormLayout.addRow(self.add)
+    # connections
+    self.add.connect('clicked(bool)', self.onAdd)
+    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.inputSelector2.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
-    
+    # exp
+    self.exp = qt.QPushButton("Take Exponent of")
+    self.exp.toolTip = "Run the operator."
+    self.exp.enabled = False
+    parametersFormLayout.addRow(self.exp)
+    # connections
+    self.exp.connect('clicked(bool)', self.onExp)
+    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)    
+
+    # pow
+    self.pow = qt.QPushButton("Raise to the Power of")
+    self.pow.toolTip = "Run the operator."
+    self.pow.enabled = False
+    parametersFormLayout.addRow(self.pow)
+    # connections
+    self.pow.connect('clicked(bool)', self.onPow)
+    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)  
+
+    # log
+    self.logg = qt.QPushButton("Take Natural Log of")
+    self.logg.toolTip = "Run the operator."
+    self.logg.enabled = False
+    parametersFormLayout.addRow(self.logg)
+    # connections
+    self.pow.connect('clicked(bool)', self.onLog)
+    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)    
 
     # Add vertical spacer
     self.layout.addStretch(1)
-
     # Refresh Apply button state
     self.onSelect()
-
 
   def cleanup(self):
     pass
 
-  def onExp(self):
+
+# THE CODE FOR THE ACTUAL OPERATORS
+
+# the addition operator 
+  def onAdd(self):
+
+  	a, b = (raw_input("Enter two values for scaling Volumes 1, 2 respecitvely: Note that numbers are seperated by a colon ").split(':'))
+	print("First number is {} and second number is {}".format(a, b))
+	print()
+
+	n1 = int(a)
+	n2 = int(b)
+
   	m1 = self.inputSelector.currentNode()
 	m2 = self.inputSelector2.currentNode()
 	vn = self.outputSelector.currentNode()
@@ -162,14 +218,84 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
 	m1arr = slicer.util.array(m1.GetName())
 	m2arr = slicer.util.array(m2.GetName())
 
-	w = m1arr + m2arr
+	w = n1 * m1arr + n2 * m2arr
 
 	n = slicer.util.getNode(vn.GetName())
 
 	slicer.util.updateVolumeFromArray(n, w)
 
+# the power operator 
+  def onPow(self):
+
+  	a, b = (raw_input("Enter x and y such that x * IMAGE ^ y respecitvely: Note that numbers are seperated by a colon ").split(':'))
+	print("First number is {} and second number is {}".format(a, b))
+	print()
+
+	n1 = int(a)
+	n2 = int(b)
+
+  	m1 = self.inputSelector.currentNode()
+	vn = self.outputSelector.currentNode()
+
+	print(np.array(m1.GetName()))
+
+	m1arr = slicer.util.array(m1.GetName())
+
+	w = n1 * np.power(m1arr, n2)
+
+	n = slicer.util.getNode(vn.GetName())
+
+	slicer.util.updateVolumeFromArray(n, w)
+
+# the log operator 
+  def onLog(self):
+
+  	a = (raw_input("Enter a value for scaling the Volume "))
+	print("Your number is: " + a)
+	print()
+
+	n1 = int(a)
+
+  	m1 = self.inputSelector.currentNode()
+	vn = self.outputSelector.currentNode()
+
+	print(np.array(m1.GetName()))
+
+	m1arr = slicer.util.array(m1.GetName())
+
+	w = n1 * np.power(m1arr, d)
+
+	n = slicer.util.getNode(vn.GetName())
+
+	slicer.util.updateVolumeFromArray(n, w)
+
+# the exponential operator 
+  def onExp(self):
+
+  	a = (raw_input("Enter a value for scaling the Volume "))
+	print("Your number is: " + a)
+	print()
+
+	n1 = int(a)
+
+  	m1 = self.inputSelector.currentNode()
+	vn = self.outputSelector.currentNode()
+
+	print(np.array(m1.GetName()))
+
+	m1arr = slicer.util.array(m1.GetName())
+
+	w = n1 * np.log(m1arr + 1)
+
+	n = slicer.util.getNode(vn.GetName())
+
+	slicer.util.updateVolumeFromArray(n, w)
+
+
+# the multiplication operator
   def onApply(self):
-  	a, b = [raw_input("Enter a two values for scaling 1, 2 respecitvely: ").split(':')]
+
+  	a, b = (raw_input("Enter two values for scaling 1, 2 respecitvely: Note that numbers are seperated by a colon ").split(':'))
 	print("First number is {} and second number is {}".format(a, b))
 	print()
 
@@ -192,11 +318,44 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
 
 	slicer.util.updateVolumeFromArray(n, w)
 
+# the multiplication operator
+  def onDiv(self):
 
+  	a, b = (raw_input("Enter two values for scaling 1, 2 respecitvely: Note that numbers are seperated by a colon ").split(':'))
+	print("First number is {} and second number is {}".format(a, b))
+	print()
+
+	n1 = int(a)
+	n2 = int(b)
+
+  	m1 = self.inputSelector.currentNode()
+	m2 = self.inputSelector2.currentNode()
+	vn = self.outputSelector.currentNode()
+
+	print(np.array(m1.GetName()))
+
+
+	m1arr = slicer.util.array(m1.GetName())
+	m2arr = slicer.util.array(m2.GetName())
+
+	w =  (n1 * (m1arr + 1)) / (n2 * (m2arr + 1))
+
+	n = slicer.util.getNode(vn.GetName())
+
+	slicer.util.updateVolumeFromArray(n, w)
+
+
+# the refresh command to make onApply (multiply) true when both volumes are selected
   def onSelect(self):
     self.applyButton.enabled = self.inputSelector.currentNode() and self.inputSelector2.currentNode() and self.outputSelector.currentNode()
+    self.div.enabled = self.inputSelector.currentNode() and self.inputSelector2.currentNode() and self.outputSelector.currentNode()
+    self.add.enabled = self.inputSelector.currentNode() and self.inputSelector2.currentNode() and self.outputSelector.currentNode()
+    self.exp.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
+    self.pow.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
+    self.logg.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
 
 
+# these are test cases. I did not do anything with this, the code is probably incorrect. 
 class HelloSharpenLogic(ScriptedLoadableModuleLogic):
 
 	def hasImageData(self,volumeNode):
