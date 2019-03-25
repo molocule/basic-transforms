@@ -273,7 +273,7 @@ class HelloSharpenWidget(ScriptedLoadableModuleWidget):
   def onApply(self):
 
 # PROBLEMATIC
-
+# please ignore the following code for taking in inputs. 
   	a, b = [raw_input("Enter a two values for scaling 1, 2 respecitvely: ").split(':')]
 	print("First number is {} and second number is {}".format(a, b))
 	print()
